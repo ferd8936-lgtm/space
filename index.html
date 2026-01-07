@@ -47,12 +47,11 @@
         }
         @keyframes bounce-char { from { transform: translateY(0); } to { transform: translateY(-15px); } }
 
-        /* 내 전투기 설정 - 기존 대비 30% 추가 확대 */
         #player {
             position: absolute; 
             bottom: 10px; 
             left: 50%; 
-            width: 128.3px; height: 163.8px; /* PC 기존(98.7x126)에서 30% 확대 */
+            width: 128.3px; height: 163.8px; 
             transform: translateX(-50%); z-index: 100; 
             background: url('spaceship.png') no-repeat center center;
             background-size: contain;
@@ -62,8 +61,8 @@
 
         @media screen and (max-width: 500px) {
             #player {
-                width: 166.5px; /* 모바일 기존(128.1px)에서 30% 확대 */
-                height: 212.9px; /* 모바일 기존(163.8px)에서 30% 확대 */
+                width: 166.5px; 
+                height: 212.9px; 
                 bottom: 10px; 
             }
         }
@@ -151,7 +150,7 @@
         <div id="status-msg">
             정답 UFO를 <span style="color:#00f2ff; font-weight:bold;">40대</span> 명중시켜 지구를 지키세요!
             <div class="warning-box">
-                정답 UFO는 2번 공격하면 사라지고<br>
+                정답 UFO는 3회 공격하면 사라지고<br>
                 오답 UFO를 공격하면 우주 대폭발 발생!
             </div>
         </div>
@@ -350,7 +349,7 @@
             obs.innerHTML = `<div class="ufo-dome"></div><div class="ufo-body"></div><span style="position:relative; z-index:2; margin-top:22px; color: #fff; text-shadow: 0 0 10px #000;">${i === correctLane ? `${a}+${b}=${ans}` : `${a}+${b}=${ans + (Math.random() > 0.5 ? 2 : -2)}`}</span>`;
             obs.dataset.lane = i;
             obs.dataset.correct = (i === correctLane);
-            obs.dataset.hp = 3; 
+            obs.dataset.hp = 6; // 1회 발사 시 총알 2발이 나가므로, 3회 발사 적중을 위해 6으로 상향
             obs.dataset.isExploding = "false";
             obs.style.left = `calc(${[16.6, 50, 83.3][i]}% - 65px)`; 
             gameWorld.appendChild(obs);
@@ -366,17 +365,19 @@
             if (!gameActive || isGameOver) return;
             const obstacles = document.querySelectorAll('.obstacle');
             const pRect = player.getBoundingClientRect();
+            
+            const overlapX = pRect.width * 0.3;
+            const overlapY = pRect.height * 0.3;
+
             obstacles.forEach(obs => {
                 if (obs.dataset.isExploding === "true") return;
                 const oRect = obs.getBoundingClientRect();
                 
-                /* 충돌 판정 정밀 수정: 
-                   pRect의 상하좌우 경계를 oRect와 거의 일치할 때(오차 1px)만 충돌로 인식 */
                 const isHit = (
-                    pRect.left + 1 < oRect.right && 
-                    pRect.right - 1 > oRect.left && 
-                    pRect.top + 1 < oRect.bottom && 
-                    pRect.bottom - 1 > oRect.top
+                    pRect.left + overlapX < oRect.right && 
+                    pRect.right - overlapX > oRect.left && 
+                    pRect.top + overlapY < oRect.bottom && 
+                    pRect.bottom - overlapY > oRect.top
                 );
                 
                 if (isHit) {
