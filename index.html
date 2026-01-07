@@ -47,12 +47,11 @@
         }
         @keyframes bounce-char { from { transform: translateY(0); } to { transform: translateY(-15px); } }
 
-        /* 내 전투기 설정 - 크기 50% 확대 및 위치 하단 이동 */
         #player {
             position: absolute; 
-            bottom: 10px; /* 기존 30px에서 10px로 내려서 더 아래에 배치 */
+            bottom: 10px; 
             left: 50%; 
-            width: 98.7px; height: 126px; /* 기존(65.8x84)에서 50% 확대 */
+            width: 98.7px; height: 126px; 
             transform: translateX(-50%); z-index: 100; 
             background: url('spaceship.png') no-repeat center center;
             background-size: contain;
@@ -62,14 +61,15 @@
 
         @media screen and (max-width: 500px) {
             #player {
-                width: 128.1px; /* 모바일 기존(85.4px)에서 50% 확대 */
-                height: 163.8px; /* 모바일 기존(109.2px)에서 50% 확대 */
-                bottom: 10px; /* 모바일에서도 하단에 밀착 */
+                width: 128.1px; 
+                height: 163.8px; 
+                bottom: 10px; 
             }
         }
 
+        /* 터치 범위 조정을 위해 투명 확장 레이어 제거 또는 축소 */
         #player::after {
-            content: ''; position: absolute; top: -30px; left: -30px; right: -30px; bottom: -30px;
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
         }
 
         .bullet { position: absolute; width: 4px; height: 18px; background: #00f2ff; z-index: 80; box-shadow: 0 0 10px #00f2ff; pointer-events: none; }
@@ -238,8 +238,11 @@
     const handleInteraction = (clientX, clientY, target) => {
         if (!gameActive || isGameOver) return;
         const pRect = player.getBoundingClientRect();
-        const isNearPlayer = (clientX >= pRect.left - 40 && clientX <= pRect.right + 40 && clientY >= pRect.top - 40 && clientY <= pRect.bottom + 40);
-        if (target === player || isNearPlayer) {
+        
+        // 발사 조건 세밀화: 우주선 이미지 영역 내부에 정확히 들어왔을 때만 발사
+        const isOnPlayer = (clientX >= pRect.left && clientX <= pRect.right && clientY >= pRect.top && clientY <= pRect.bottom);
+        
+        if (target === player || isOnPlayer) {
             shootLaser();
         } else {
             const rect = container.getBoundingClientRect();
@@ -369,7 +372,15 @@
             obstacles.forEach(obs => {
                 if (obs.dataset.isExploding === "true") return;
                 const oRect = obs.getBoundingClientRect();
-                const isHit = (pRect.left + 8 < oRect.right && pRect.right - 8 > oRect.left && pRect.top + 8 < oRect.bottom && pRect.bottom - 8 > oRect.top);
+                
+                // 충돌 판정 세밀화: 기존 8px 여유 공간을 2px로 축소하여 거의 닿았을 때만 폭발
+                const isHit = (
+                    pRect.left + 2 < oRect.right && 
+                    pRect.right - 2 > oRect.left && 
+                    pRect.top + 2 < oRect.bottom && 
+                    pRect.bottom - 2 > oRect.top
+                );
+                
                 if (isHit) {
                     playExplodeSound();
                     endGame(false);
