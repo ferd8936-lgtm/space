@@ -68,10 +68,10 @@
         }
         @keyframes bounce-char { from { transform: translateY(0); } to { transform: translateY(-15px); } }
 
-        /* 내 전투기 설정 - 하단 여백을 0.5svh로 줄여 더 아래로 배치 */
+        /* [수정] 하단 여백을 완전히 없애기 위해 bottom: 0 적용 */
         #player {
             position: absolute; 
-            bottom: 0.5svh; 
+            bottom: 0px; 
             left: 50%; 
             width: 128.3px; height: 163.8px; 
             transform: translateX(-50%); z-index: 100; 
@@ -85,7 +85,7 @@
             #player {
                 width: 166.5px; 
                 height: 212.9px; 
-                bottom: 0.5svh; 
+                bottom: 0px; 
             }
         }
 
@@ -312,9 +312,10 @@
             const b = document.createElement('div');
             b.className = 'bullet';
             b.style.left = `calc(${lanes[curLane]}% + ${off}px)`;
-            b.style.bottom = '90px';
+            // [수정] 우주선이 바닥에 붙었으므로 총알 시작 높이도 조정 (90px -> 60px)
+            b.style.bottom = '60px';
             container.appendChild(b);
-            const anim = b.animate([{ bottom: '90px' }, { bottom: '100%' }], { duration: 350 });
+            const anim = b.animate([{ bottom: '60px' }, { bottom: '100%' }], { duration: 350 });
             const bulletCheck = setInterval(() => {
                 if (!targetObs) return;
                 const bRect = b.getBoundingClientRect();
