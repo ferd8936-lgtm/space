@@ -47,12 +47,21 @@
         }
         @keyframes bounce-char { from { transform: translateY(0); } to { transform: translateY(-15px); } }
 
+        /* 기본 우주선 설정 (PC 기준) */
         #player {
             position: absolute; bottom: 30px; left: 50%; width: 47px; height: 60px;
             transform: translateX(-50%); z-index: 100; 
             background: #fff; clip-path: polygon(50% 0%, 100% 100%, 50% 85%, 0% 100%);
             box-shadow: 0 0 25px #00f2ff; transition: left 0.15s ease-out;
             cursor: pointer;
+        }
+
+        /* 모바일 최적화: 화면 폭이 500px 이하일 때 우주선 크기를 30% 확대 */
+        @media screen and (max-width: 500px) {
+            #player {
+                width: 61px; /* 47px의 약 1.3배 */
+                height: 78px; /* 60px의 약 1.3배 */
+            }
         }
 
         #player::after {
@@ -196,7 +205,6 @@
             filter.frequency.setValueAtTime(1000, startTime);
             filter.frequency.exponentialRampToValueAtTime(400, startTime + duration);
             
-            // 볼륨 배율 기존 대비 30% 추가 상향 (기존 1.5 -> 1.95)
             gain.gain.setValueAtTime(0, startTime);
             gain.gain.linearRampToValueAtTime(vol * 1.95, startTime + 0.1);
             gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
@@ -208,7 +216,6 @@
         bgmInterval = setInterval(() => {
             if (!gameActive || isGameOver) { clearInterval(bgmInterval); bgmInterval = null; return; }
             const now = audioCtx.currentTime;
-            // 각 악기 파트별 볼륨도 소폭 상향
             createNote(55, now, 3.2, 'sine', 0.32); 
             createNote(55.5, now, 3.2, 'sine', 0.26, 10); 
             createNote(220, now, 2.0, 'triangle', 0.1); 
