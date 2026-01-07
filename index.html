@@ -38,7 +38,7 @@
         }
 
         .intro-char {
-            width: 100px; height: 100px;
+            width: 140px; height: 140px;
             background: url('abc.png') no-repeat center center;
             background-size: contain;
             animation: bounce-char 0.8s infinite alternate ease-in-out;
@@ -51,16 +51,21 @@
         #player {
             position: absolute; bottom: 30px; left: 50%; width: 47px; height: 60px;
             transform: translateX(-50%); z-index: 100; 
-            background: #fff; clip-path: polygon(50% 0%, 100% 100%, 50% 85%, 0% 100%);
+            background: #fff; 
+            /* PC의 다각형 모양 정의 */
+            clip-path: polygon(50% 0%, 100% 100%, 50% 85%, 0% 100%);
             box-shadow: 0 0 25px #00f2ff; transition: left 0.15s ease-out;
             cursor: pointer;
         }
 
-        /* 모바일 최적화: 화면 폭이 500px 이하일 때 우주선 크기를 30% 확대 */
+        /* 모바일 최적화: PC와 모양(clip-path)을 100% 일치시킴 */
         @media screen and (max-width: 500px) {
             #player {
-                width: 61px; /* 47px의 약 1.3배 */
-                height: 78px; /* 60px의 약 1.3배 */
+                width: 61px;
+                height: 78px;
+                /* 중요: 모바일에서도 삼각형이 아닌 PC의 다각형 모양을 강제 적용 */
+                clip-path: polygon(50% 0%, 100% 100%, 50% 85%, 0% 100%) !important;
+                -webkit-clip-path: polygon(50% 0%, 100% 100%, 50% 85%, 0% 100%) !important;
             }
         }
 
@@ -151,7 +156,7 @@
                 오답 UFO를 맞히면 우주 대폭발 발생!
             </div>
         </div>
-        <button id="start-btn" class="btn" onclick="startGame()" ontouchstart="event.preventDefault(); startGame();">작전 시작</button>
+        <button id="start-btn" class="btn" onclick="startGame()">작전 시작</button>
     </div>
 
     <div id="game-world" style="display:none; height: 100%; width: 100%; position:relative;">
@@ -398,7 +403,6 @@
             status.innerHTML = `<div class="result-score-box"><span class="result-score-label">최종 스코어</span><span class="result-score-value">우주선 ${score}대 격파</span></div><div style="font-size:0.9rem; color:#aaa; font-weight:bold; padding: 0 10px;">다시 도전하여 지구의 평화를 지켜주세요!</div>`;
             btn.innerText = "다시 시작하기";
             btn.onclick = () => location.reload();
-            btn.ontouchstart = (e) => { e.preventDefault(); location.reload(); };
             introScreen.style.display = 'flex';
         }, 800);
     }
