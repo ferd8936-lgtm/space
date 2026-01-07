@@ -48,7 +48,7 @@
         @keyframes bounce-char { from { transform: translateY(0); } to { transform: translateY(-15px); } }
 
         #player {
-            position: absolute; bottom: 120px; left: 50%; width: 47px; height: 60px;
+            position: absolute; bottom: 30px; left: 50%; width: 47px; height: 60px;
             transform: translateX(-50%); z-index: 100; 
             background: #fff; clip-path: polygon(50% 0%, 100% 100%, 50% 85%, 0% 100%);
             box-shadow: 0 0 25px #00f2ff; transition: left 0.15s ease-out;
@@ -196,9 +196,9 @@
             filter.frequency.setValueAtTime(1000, startTime);
             filter.frequency.exponentialRampToValueAtTime(400, startTime + duration);
             
-            // 볼륨 배율 상향 조정 (vol * 1.5)
+            // 볼륨 배율 기존 대비 30% 추가 상향 (기존 1.5 -> 1.95)
             gain.gain.setValueAtTime(0, startTime);
-            gain.gain.linearRampToValueAtTime(vol * 1.5, startTime + 0.1);
+            gain.gain.linearRampToValueAtTime(vol * 1.95, startTime + 0.1);
             gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
             
             osc.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
@@ -208,12 +208,12 @@
         bgmInterval = setInterval(() => {
             if (!gameActive || isGameOver) { clearInterval(bgmInterval); bgmInterval = null; return; }
             const now = audioCtx.currentTime;
-            // 각 파트별 볼륨값 상향
-            createNote(55, now, 3.2, 'sine', 0.25); // 베이스 볼륨업
-            createNote(55.5, now, 3.2, 'sine', 0.2, 10); 
-            createNote(220, now, 2.0, 'triangle', 0.08); // 패드 볼륨업
-            createNote(329.63, now + 0.8, 2.0, 'triangle', 0.06); 
-            if (Math.random() > 0.5) createNote(880, now + 1.2, 1.5, 'sine', 0.03);
+            // 각 악기 파트별 볼륨도 소폭 상향
+            createNote(55, now, 3.2, 'sine', 0.32); 
+            createNote(55.5, now, 3.2, 'sine', 0.26, 10); 
+            createNote(220, now, 2.0, 'triangle', 0.1); 
+            createNote(329.63, now + 0.8, 2.0, 'triangle', 0.08); 
+            if (Math.random() > 0.5) createNote(880, now + 1.2, 1.5, 'sine', 0.04);
         }, 3200);
     }
 
@@ -268,9 +268,9 @@
             const b = document.createElement('div');
             b.className = 'bullet';
             b.style.left = `calc(${lanes[curLane]}% + ${off}px)`;
-            b.style.bottom = '180px';
+            b.style.bottom = '90px';
             container.appendChild(b);
-            const anim = b.animate([{ bottom: '180px' }, { bottom: '100%' }], { duration: 350 });
+            const anim = b.animate([{ bottom: '90px' }, { bottom: '100%' }], { duration: 350 });
             const bulletCheck = setInterval(() => {
                 if (!targetObs) return;
                 const bRect = b.getBoundingClientRect();
@@ -397,5 +397,4 @@
     }
 </script>
 </body>
-
 </html>
