@@ -3,416 +3,417 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>아이니의 지구수호 레이스</title>
+    <title>아이니의 마을 수호대!</title>
     <style>
         @font-face {
             font-family: 'NexonGothic';
             src: url('./NexonLv2Gothic_2.ttf') format('truetype');
+            font-weight: normal; font-style: normal;
         }
         * { font-family: 'NexonGothic', sans-serif !important; box-sizing: border-box; }
-        body { margin: 0; overflow: hidden; background: #000; user-select: none; touch-action: none; }
+        body { 
+            margin: 0; overflow: hidden; background: #000; 
+            user-select: none; touch-action: none;
+            width: 100%; height: 100%;
+        }
+
+        /* 크롬 유도 바 스타일 추가 */
+        #chrome-prompt {
+            position: absolute; top: 0; left: 0; width: 100%; height: 40px;
+            background: #4285F4; color: white; display: none; align-items: center;
+            justify-content: center; font-size: 14px; z-index: 9999; cursor: pointer;
+            font-weight: bold;
+        }
 
         #game-container { 
-            position: relative; width: 100vw; height: 100vh; max-width: 500px; margin: 0 auto;
-            background: radial-gradient(circle at center, #05051a 0%, #000 100%);
-            overflow: hidden; 
+            position: relative; width: 100vw; height: 100vh; max-width: 600px; margin: 0 auto;
+            background: url('sky.png') no-repeat center center / cover; overflow: hidden; 
         }
 
-        .stars {
-            position: absolute; width: 200%; height: 200%; top: -50%; left: -50%;
-            background-image: 
-                radial-gradient(2.5px 2.5px at 20px 30px, #fff, rgba(0,0,0,0)), 
-                radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)), 
-                radial-gradient(1.5px 1.5px at 100px 150px, #00f2ff, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 150px 200px, rgba(255,255,255,0.9), rgba(0,0,0,0));
-            background-size: 250px 250px;
-            animation: space-scroll 15s linear infinite;
-            opacity: 0.8; z-index: 1; pointer-events: none;
-        }
-        @keyframes space-scroll { from { transform: translateY(0); } to { transform: translateY(250px); } }
-
-        .overlay { 
-            position: absolute; width: 100%; height: 100%; z-index: 5000; 
-            background: rgba(0, 0, 0, 0.9); display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; color: white; padding: 20px; text-align: center;
-        }
-
-        .intro-char {
-            width: 140px; height: 140px;
-            background: url('abc.png') no-repeat center center;
-            background-size: contain;
-            animation: bounce-char 0.8s infinite alternate ease-in-out;
-            margin-bottom: 15px;
-            display: block; margin-left: auto; margin-right: auto;
-        }
-        @keyframes bounce-char { from { transform: translateY(0); } to { transform: translateY(-15px); } }
-
-        #player {
-            position: absolute; 
-            bottom: 10px; 
-            left: 50%; 
-            width: 128.3px; height: 163.8px; 
-            transform: translateX(-50%); z-index: 100; 
-            background: url('spaceship.png') no-repeat center center;
-            background-size: contain;
-            transition: left 0.15s ease-out;
-            cursor: pointer;
-        }
-
-        @media screen and (max-width: 500px) {
-            #player {
-                width: 166.5px; 
-                height: 212.9px; 
-                bottom: 10px; 
-            }
-        }
-
-        #player::after {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-        }
-
-        .bullet { position: absolute; width: 4px; height: 18px; background: #00f2ff; z-index: 80; box-shadow: 0 0 10px #00f2ff; pointer-events: none; }
-        
-        .obstacle {
-            position: absolute; width: 130px; height: 85px;
-            display: flex; align-items: center; justify-content: center;
-            color: #fff; z-index: 10; font-size: 24px; font-weight: bold; pointer-events: none;
-        }
-        .ufo-body {
-            position: absolute; width: 100%; height: 42px; top: 28px;
-            background: #222; border: 2.5px solid #00f2ff; border-radius: 60px;
-            box-shadow: 0 5px 20px rgba(0, 242, 255, 0.4);
-        }
-        .ufo-dome {
-            position: absolute; width: 55%; height: 38px; top: 0px; left: 22.5%;
-            background: rgba(0, 242, 255, 0.15); border: 2.5px solid #00f2ff;
-            border-bottom: none; border-radius: 60px 60px 0 0;
-        }
-
-        @keyframes explode-anim {
-            0% { transform: scale(1); opacity: 1; filter: brightness(2); }
-            100% { transform: scale(5); opacity: 0; filter: brightness(10); }
-        }
-
-        @keyframes big-explode-anim {
-            0% { transform: scale(1); filter: brightness(2); }
-            30% { transform: scale(8); filter: hue-rotate(90deg) brightness(5); opacity: 1; }
-            100% { transform: scale(15); opacity: 0; }
-        }
-
-        @keyframes heavy-shake {
-            0% { transform: translate(0, 0); }
-            10% { transform: translate(-10px, -10px); }
-            30% { transform: translate(10px, 10px); }
-            50% { transform: translate(-15px, 5px); }
-            70% { transform: translate(15px, -5px); }
-            100% { transform: translate(0, 0); }
-        }
-        .heavy-shake-screen { animation: heavy-shake 0.8s ease-in-out; }
-
-        .btn { 
-            padding: 12px 40px; background: #00f2ff; border: none; color: #000; 
-            cursor: pointer; margin-top: 15px; font-weight: bold; font-size: 1rem; 
-            border-radius: 50px; touch-action: manipulation;
+        .overlay {
+            position: absolute; width: 100%; height: 100%; z-index: 2000;
+            background: rgba(0, 0, 0, 0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 20px;
         }
         
-        #ui-layer { position: absolute; top: 40px; width: 100%; text-align: center; color: #00f2ff; z-index: 1000; font-weight: bold; font-size: 19px; text-shadow: 0 0 10px #000; pointer-events: none; }
+        .animated-char {
+            width: 120px; height: auto;
+            margin-bottom: 25px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+            animation: bounce-rabbit 0.8s infinite alternate ease-in-out;
+        }
 
-        .result-title { font-size: 2rem; font-weight: 900; margin-bottom: 5px; }
-        .result-score-box { background: rgba(255, 255, 255, 0.1); padding: 15px 30px; border-radius: 20px; margin: 10px 0; border: 1px solid rgba(0, 242, 255, 0.3); }
-        .result-score-label { font-size: 0.9rem; color: #00f2ff; display: block; margin-bottom: 3px; }
-        .result-score-value { font-size: 1.1rem; font-weight: bold; color: #fff; letter-spacing: 0.5px; } 
+        @keyframes bounce-rabbit { from { transform: translateY(0); } to { transform: translateY(-20px); } }
 
-        .warning-box {
-            background: rgba(255, 0, 222, 0.1);
-            border: 1px solid #ff00de;
-            padding: 15px 25px;
-            border-radius: 12px;
-            margin-top: 15px;
-            line-height: 1.7;
-            font-size: 1.05rem;
-            color: #fff;
-            font-weight: 500;
+        .instruction { 
+            background: white; color: #333; padding: 25px; border-radius: 20px; 
+            margin: 25px 0; line-height: 1.7; font-size: 19px; text-align: center; width: 90%;
+            word-break: keep-all; max-height: 35vh; overflow-y: auto;
+        }
+        .btn { padding: 15px 40px; background: #4caf50; color: white; border: none; border-radius: 35px; font-size: 21px; font-weight: bold; cursor: pointer; }
+
+        #game-area { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; }
+        #status-bar { position: absolute; top: 15px; left: 15px; color: white; font-weight: bold; z-index: 1000; background: rgba(0,0,0,0.5); padding: 7px 20px; border-radius: 25px; font-size: 17px; }
+
+        .speech-bubble {
+            position: absolute; background: white; color: #333;
+            padding: 10px 20px; border-radius: 25px; font-size: 20px; font-weight: 900;
+            white-space: nowrap; border: 4px solid #2e7d32; display: none; z-index: 160;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+        }
+        .speech-bubble::after {
+            content: ''; position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%);
+            border-width: 14px 10px 0 10px; border-style: solid; border-color: #2e7d32 transparent transparent transparent;
+        }
+
+        .bomb {
+            position: absolute; width: 100px; height: 110px; 
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120"><defs><radialGradient id="grad" cx="40%" cy="40%" r="50%"><stop offset="0%" style="stop-color:%23555;stop-opacity:1"/><stop offset="100%" style="stop-color:%23000;stop-opacity:1"/></radialGradient></defs><path d="M45 15 L55 15 L55 25 L45 25 Z" fill="%23333"/><path d="M50 5 Q55 10 50 15" stroke="%23aaa" stroke-width="2" fill="none"/><circle cx="50" cy="5" r="3" fill="orange"><animate attributeName="r" values="3;5;3" dur="0.2s" repeatCount="indefinite"/></circle><circle cx="50" cy="65" r="40" fill="url(%23grad)"/><circle cx="35" cy="50" r="10" fill="white" fill-opacity="0.2"/></svg>') no-repeat center center;
+            background-size: contain; display: flex; align-items: center; justify-content: center; z-index: 500; cursor: pointer;
+        }
+        .bomb-text { color: white; font-weight: bold; font-size: 18px; text-align: center; pointer-events: none; margin-top: 25px; text-shadow: 2px 2px 2px #000; line-height: 1.2; width: 85%; }
+
+        .pop-out { animation: pop-out-ani 0.4s ease-out forwards; }
+        @keyframes pop-out-ani { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); } 100% { transform: scale(0); opacity: 0; } }
+
+        .fire-explosion {
+            position: absolute; width: 350px; height: 350px;
+            background: radial-gradient(circle, #fff 5%, #ffeb3b 25%, #f44336 50%, transparent 75%);
+            border-radius: 50%; animation: explode-ani 0.9s ease-out forwards;
+            z-index: 1500; pointer-events: none; transform: translate(-50%, -50%);
+        }
+        @keyframes explode-ani { 0% { transform: translate(-50%, -50%) scale(0); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(3.5); opacity: 0; } }
+        .shake-active { animation: shake-screen 0.1s infinite; }
+        @keyframes shake-screen { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(-8px, 8px); } 75% { transform: translate(8px, -8px); } }
+
+        /* [수정 1] 새로운 소원권 팝업 디자인 */
+        .result-pop {
+            background: #fff; padding: 30px 20px; border-radius: 40px; text-align: center; 
+            color: #333; width: 90%; box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            border: 8px solid #FFD700; position: relative;
+            animation: pop-bounce 0.5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        }
+
+        @keyframes pop-bounce {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        #stats-title { font-size: 32px; color: #FF4081; margin-bottom: 5px; font-weight: 900; text-shadow: 1px 1px 0px #eee; }
+        #stats-content { font-size: 19px; line-height: 1.5; margin-bottom: 20px; color: #555; }
+
+        #wish-ticket {
+            display: none;
+            background: linear-gradient(135deg, #FF69B4 0%, #FF1493 100%);
+            color: #fff; padding: 25px 15px; border-radius: 25px;
+            border: 4px dashed #fff; box-shadow: 0 0 20px rgba(255, 20, 147, 0.4);
+            margin: 15px auto; width: 95%; max-width: 300px;
+            animation: shine-wish 1.5s infinite ease-in-out;
+            position: relative;
+        }
+
+        @keyframes shine-wish {
+            0% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.05); filter: brightness(1.2); box-shadow: 0 0 30px rgba(255, 20, 147, 0.6); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+
+        .ticket-text-top { display: block; font-size: 24px; font-weight: 900; margin-bottom: 5px; }
+        .ticket-text-bottom { display: block; font-size: 28px; font-weight: 900; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+
+        .popup-char { width: 90px; height: 90px; margin: 15px auto; background: url('abcd.png') no-repeat center/contain; animation: tada 2s infinite; }
+        
+        @keyframes tada {
+            0% { transform: scale(1); }
+            10%, 20% { transform: scale(0.9) rotate(-3deg); }
+            30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); }
+            40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); }
+            100% { transform: scale(1) rotate(0); }
         }
     </style>
 </head>
 <body>
 
+<div id="chrome-prompt" onclick="openInChrome()">이 게임은 Chrome에 최적화되었습니다. [클릭하여 이동]</div>
+
 <div id="game-container">
-    <div class="stars"></div>
-    <div id="ui-layer" style="display:none;">
-        우주선 격파: <span id="score-text">0</span> / 40
-    </div>
+    <div id="status-bar" style="display:none;">단계: <span id="cur-step">1</span> | 제거: <span id="cur-score">0</span>/15</div>
 
     <div id="intro-screen" class="overlay">
-        <div class="intro-char"></div>
-        <h1 id="main-title" style="color:#00f2ff; margin-top:0; font-size: 1.8rem; font-weight: 900; margin-bottom: 5px;">아이니의<br>지구 수호 레이스</h1>
-        <div id="status-msg">
-            정답 UFO를 <span style="color:#00f2ff; font-weight:bold;">40대</span> 명중시켜 지구를 지키세요!
-            <div class="warning-box">
-                정답 UFO는 3회 공격하면 사라지고<br>
-                오답 UFO를 공격하면 우주 대폭발 발생!
-            </div>
+        <img src="abcd.png" class="animated-char" alt="character">
+        <div class="instruction">
+            <strong>작전 개시! 마을을 지켜라!</strong><br><br>
+            1. <b>정답</b> 폭탄을 15개 제거할 때마다 소원권을 획득할 수 있습니다.<br>
+            2. 정답을 놓치거나 <b>오답</b>을 누르면 마을이 폭발하니 주의하세요!
         </div>
-        <button id="start-btn" class="btn" onclick="startGame()">작전 시작</button>
+        <button class="btn" onclick="startGame()">작전 시작</button>
     </div>
 
-    <div id="game-world" style="display:none; height: 100%; width: 100%; position:relative;">
-        <div id="player"></div>
+    <div id="game-area" style="display:none;">
+        <div id="village-bubble" class="speech-bubble"></div>
+    </div>
+
+    <div id="stats-screen" class="overlay" style="display:none;">
+        <div class="result-pop">
+            <h1 id="stats-title">임무 완수! 🎉</h1>
+            <p id="stats-content">우리 마을을 성공적으로 지켜냈어요!</p>
+            
+            <div id="wish-ticket">
+                <span class="ticket-text-top">⭐ 축하해! ⭐</span>
+                <span class="ticket-text-bottom">🎟️ 소원권 획득! 🎟️</span>
+            </div>
+
+            <div class="popup-char"></div>
+            
+            <div style="display:flex; gap:10px; justify-content: center; margin-top: 15px;">
+                <button id="restart-btn" class="btn" onclick="handleRestart()" style="background:#FF9800; border-bottom: 5px solid #E65100;">다음 단계 도전</button>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
+    /* 크롬 체크 및 전환 로직 추가 */
+    window.onload = function() {
+        const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+        if (!isChrome) {
+            document.getElementById('chrome-prompt').style.display = 'flex';
+        }
+    };
+
+    function openInChrome() {
+        const url = window.location.href.replace(/^https?:\/\//, '');
+        window.location.href = "googlechrome://" + url;
+    }
+
+    let currentLevel = 1;
+    let score = 0;
+    const goal = 15;
+    let activeBombs = [];
+    let isGameOver = false;
+    let baseSpeed = 0.35;
+    const cheers = ["화이팅!", "잘한다!", "마을을 구했다!", "우와!", "최고야!", "힘내!", "대단해!", "좋아 좋아!"];
+
     let audioCtx;
     let bgmInterval = null;
-
-    function playShootSound() {
-        if (!audioCtx) return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.2799, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-    }
-
-    function playExplodeSound() {
-        if (!audioCtx) return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.5);
-        gain.gain.setValueAtTime(0.6625, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.5);
-    }
 
     function playBGM() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
         if (bgmInterval) return;
 
-        function createNote(freq, startTime, duration, type = 'triangle', vol = 0.05, detune = 0) {
+        function createNote(freq, startTime, duration) {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            const filter = audioCtx.createBiquadFilter();
-            osc.type = type;
+            osc.type = 'sawtooth'; 
             osc.frequency.setValueAtTime(freq, startTime);
-            osc.detune.setValueAtTime(detune, startTime);
-            filter.type = "lowpass";
-            filter.frequency.setValueAtTime(1000, startTime);
-            filter.frequency.exponentialRampToValueAtTime(400, startTime + duration);
-            gain.gain.setValueAtTime(0, startTime);
-            gain.gain.linearRampToValueAtTime(vol * 3.2955, startTime + 0.1);
+            gain.gain.setValueAtTime(0.3, startTime); 
             gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
-            osc.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+            osc.connect(gain); gain.connect(audioCtx.destination);
             osc.start(startTime); osc.stop(startTime + duration);
         }
 
         bgmInterval = setInterval(() => {
-            if (!gameActive || isGameOver) { clearInterval(bgmInterval); bgmInterval = null; return; }
+            if (isGameOver) { clearInterval(bgmInterval); bgmInterval = null; return; }
             const now = audioCtx.currentTime;
-            createNote(55, now, 3.2, 'sine', 0.54); 
-            createNote(55.5, now, 3.2, 'sine', 0.44, 10); 
-            createNote(220, now, 2.0, 'triangle', 0.17); 
-            createNote(329.63, now + 0.8, 2.0, 'triangle', 0.135); 
-            if (Math.random() > 0.5) createNote(880, now + 1.2, 1.5, 'sine', 0.067);
-        }, 3200);
-    }
-
-    let score = 0, curLane = 1;
-    let isGameOver = false, gameActive = false, collisionCheckLoop;
-    let quizAnims = [];
-
-    const player = document.getElementById('player');
-    const container = document.getElementById('game-container');
-    const gameWorld = document.getElementById('game-world');
-    const introScreen = document.getElementById('intro-screen');
-
-    const handleInteraction = (clientX, clientY, target) => {
-        if (!gameActive || isGameOver) return;
-        const pRect = player.getBoundingClientRect();
-        const isOnPlayer = (clientX >= pRect.left && clientX <= pRect.right && clientY >= pRect.top && clientY <= pRect.bottom);
-        if (target === player || isOnPlayer) {
-            shootLaser();
-        } else {
-            const rect = container.getBoundingClientRect();
-            const posX = clientX - rect.left;
-            const width = container.clientWidth;
-            if (posX < width / 3) curLane = 0;
-            else if (posX < (width / 3) * 2) curLane = 1;
-            else curLane = 2;
-            player.style.left = [16.6, 50, 83.3][curLane] + '%';
-        }
-    };
-
-    container.addEventListener('mousedown', (e) => handleInteraction(e.clientX, e.clientY, e.target));
-    container.addEventListener('touchstart', (e) => {
-        if(gameActive) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            handleInteraction(touch.clientX, touch.clientY, e.target);
-        }
-    }, {passive: false});
-
-    function shootLaser() {
-        if (isGameOver) return;
-        playShootSound();
-        const lanes = [16.6, 50, 83.3];
-        const obsList = document.querySelectorAll('.obstacle');
-        let targetObs = null;
-        obsList.forEach(obs => {
-            if (parseInt(obs.dataset.lane) === curLane && obs.dataset.isExploding !== "true") {
-                targetObs = obs;
-            }
-        });
-
-        [-12, 12].forEach(off => {
-            const b = document.createElement('div');
-            b.className = 'bullet';
-            b.style.left = `calc(${lanes[curLane]}% + ${off}px)`;
-            b.style.bottom = '90px';
-            container.appendChild(b);
-            const anim = b.animate([{ bottom: '90px' }, { bottom: '100%' }], { duration: 350 });
-            const bulletCheck = setInterval(() => {
-                if (!targetObs) return;
-                const bRect = b.getBoundingClientRect();
-                const oRect = targetObs.getBoundingClientRect();
-                if (bRect.top <= oRect.bottom) {
-                    clearInterval(bulletCheck);
-                    anim.pause();
-                    b.remove();
-                    triggerHitEffect(targetObs);
-                }
-            }, 10);
-            anim.onfinish = () => { clearInterval(bulletCheck); b.remove(); };
-        });
-    }
-
-    function triggerHitEffect(obs) {
-        if (isGameOver || obs.dataset.isExploding === "true") return;
-        obs.dataset.hp = parseInt(obs.dataset.hp) - 1;
-        obs.style.filter = "brightness(3)";
-        setTimeout(() => { if(obs) obs.style.filter = "brightness(1)"; }, 50);
-        if (parseInt(obs.dataset.hp) <= 0) {
-            obs.dataset.isExploding = "true";
-            if (obs.dataset.correct === "true") {
-                score++;
-                document.getElementById('score-text').innerText = score;
-                obs.style.animation = "explode-anim 0.5s forwards";
-                setTimeout(() => {
-                    obs.remove();
-                    if (score >= 40) return endGame(true); 
-                    spawnQuiz();
-                }, 500);
-            } else {
-                playExplodeSound();
-                obs.style.animation = "big-explode-anim 0.8s forwards";
-                container.classList.add('heavy-shake-screen');
-                setTimeout(() => endGame(false, true), 600); 
-            }
-        }
+            createNote(82.41, now, 0.6); 
+            setTimeout(() => { if (!isGameOver) createNote(87.31, audioCtx.currentTime, 0.6); }, 250);
+        }, 500);
     }
 
     function startGame() {
-        if(gameActive) return;
-        isGameOver = false; gameActive = true; score = 0;
+        isGameOver = false;
+        score = 0;
+        activeBombs = [];
         playBGM();
-        document.getElementById('score-text').innerText = score;
-        introScreen.style.display = 'none';
-        gameWorld.style.display = 'block';
-        document.getElementById('ui-layer').style.display = 'block';
-        player.style.animation = ""; player.style.opacity = "1";
-        spawnQuiz();
-        startCollisionCheck();
+        document.getElementById('intro-screen').style.display = 'none';
+        document.getElementById('stats-screen').style.display = 'none';
+        document.getElementById('game-area').style.display = 'block';
+        document.getElementById('status-bar').style.display = 'block';
+        updateStatus();
+        showCheer(true); 
+        spawnLoop();
     }
 
-    function spawnQuiz() {
-        if (isGameOver) return;
-        document.querySelectorAll('.obstacle').forEach(o => o.remove());
-        quizAnims = [];
-        let diff = Math.min(score, 40);
-        let range = 10 + Math.floor(diff / 2); 
-        let speed = Math.max(15000 - (diff * 230), 4500); 
-        const correctLane = Math.floor(Math.random() * 3);
-        for (let i = 0; i < 3; i++) {
-            let a = Math.floor(Math.random() * range) + 5;
-            let b = Math.floor(Math.random() * range) + 5;
-            let ans = a + b;
-            const obs = document.createElement('div');
-            obs.className = 'obstacle';
-            obs.innerHTML = `<div class="ufo-dome"></div><div class="ufo-body"></div><span style="position:relative; z-index:2; margin-top:22px; color: #fff; text-shadow: 0 0 10px #000;">${i === correctLane ? `${a}+${b}=${ans}` : `${a}+${b}=${ans + (Math.random() > 0.5 ? 2 : -2)}`}</span>`;
-            obs.dataset.lane = i;
-            obs.dataset.correct = (i === correctLane);
-            obs.dataset.hp = 6; // 1회 발사 시 총알 2발이 나가므로, 3회 발사 적중을 위해 6으로 상향
-            obs.dataset.isExploding = "false";
-            obs.style.left = `calc(${[16.6, 50, 83.3][i]}% - 65px)`; 
-            gameWorld.appendChild(obs);
-            const anim = obs.animate([{ top: '-120px' }, { top: '100%' }], { duration: speed, fill: 'forwards', easing: 'linear' });
-            quizAnims.push(anim);
-            anim.onfinish = () => { if(gameActive && !isGameOver && obs.parentElement) spawnQuiz(); };
-        }
+    function showCheer(isStart = false) {
+        const bubble = document.getElementById('village-bubble');
+        if (isStart) bubble.innerText = "마을을 지켜줘!";
+        else bubble.innerText = cheers[Math.floor(Math.random() * cheers.length)];
+        
+        const containerWidth = document.getElementById('game-container').offsetWidth;
+        const containerHeight = document.getElementById('game-container').offsetHeight;
+        const randomX = (containerWidth * 0.1) + Math.random() * (containerWidth * 0.8 - 100);
+        const randomY = containerHeight - (containerHeight * (0.15 + Math.random() * 0.1));
+        
+        bubble.style.left = randomX + 'px';
+        bubble.style.top = (randomY - 60) + 'px'; 
+        bubble.style.display = 'block';
+        bubble.style.opacity = '1';
+        
+        setTimeout(() => { 
+            bubble.style.opacity = '0';
+            setTimeout(() => { bubble.style.display = 'none'; }, 300);
+        }, 1800);
     }
 
-    function startCollisionCheck() {
-        if(collisionCheckLoop) clearInterval(collisionCheckLoop);
-        collisionCheckLoop = setInterval(() => {
-            if (!gameActive || isGameOver) return;
-            const obstacles = document.querySelectorAll('.obstacle');
-            const pRect = player.getBoundingClientRect();
-            
-            const overlapX = pRect.width * 0.3;
-            const overlapY = pRect.height * 0.3;
-
-            obstacles.forEach(obs => {
-                if (obs.dataset.isExploding === "true") return;
-                const oRect = obs.getBoundingClientRect();
-                
-                const isHit = (
-                    pRect.left + overlapX < oRect.right && 
-                    pRect.right - overlapX > oRect.left && 
-                    pRect.top + overlapY < oRect.bottom && 
-                    pRect.bottom - overlapY > oRect.top
-                );
-                
-                if (isHit) {
-                    playExplodeSound();
-                    endGame(false);
-                } 
-            });
-        }, 20);
+    function updateStatus() {
+        document.getElementById('cur-step').innerText = currentLevel;
+        document.getElementById('cur-score').innerText = score;
     }
 
-    function endGame(isWin, isWrongHit = false) {
-        if (isGameOver) return;
-        isGameOver = true; gameActive = false;
-        clearInterval(collisionCheckLoop);
-        quizAnims.forEach(a => { if(a) a.pause(); });
-        if (!isWin && !isWrongHit) {
-            container.classList.add('heavy-shake-screen');
-            player.style.animation = "explode-anim 0.6s forwards";
-        }
+    function spawnLoop() {
+        if (isGameOver || score >= goal) return;
+        let canSpawn = activeBombs.length === 0 || activeBombs[activeBombs.length - 1].y > 100;
+        if (canSpawn && activeBombs.length < 4) createBomb();
+        setTimeout(spawnLoop, 350);
+    }
+
+    function createBomb() {
+        if (isGameOver || score >= goal) return;
+        const area = document.getElementById('game-area');
+        const bomb = document.createElement('div');
+        bomb.className = 'bomb';
+        
+        let quiz;
+        if (currentLevel === 1) quiz = makeQuizData("plus");
+        else quiz = makeQuizData("mix");
+
+        const isCorrect = Math.random() > 0.4;
+        let displayAns = isCorrect ? quiz.ans : (quiz.ans + (Math.floor(Math.random() * 9) + 1));
+        
+        bomb.innerHTML = `<div class="bomb-text">${quiz.q}<br>= ${displayAns}</div>`;
+        const containerWidth = document.getElementById('game-container').offsetWidth;
+        const containerHeight = document.getElementById('game-container').offsetHeight;
+        
+        let startX;
+        let attempts = 0;
+        do {
+            startX = 20 + Math.random() * (containerWidth - 110);
+            attempts++;
+        } while (activeBombs.some(b => Math.abs(startX - b.x) < 100) && attempts < 10);
+
+        bomb.style.left = startX + 'px';
+        bomb.style.top = '-120px';
+        area.appendChild(bomb);
+
+        const bombObj = { element: bomb, x: startX, y: -120 };
+        activeBombs.push(bombObj);
+
+        let speedFactor = (currentLevel === 1) ? 1.1 : 1.35;
+        let finalSpeed = (baseSpeed + (Math.random() * 0.15)) * speedFactor;
+        
+        const moveInterval = setInterval(() => {
+            if (isGameOver || score >= goal) { clearInterval(moveInterval); bomb.remove(); return; }
+            bombObj.y += finalSpeed;
+            bomb.style.top = bombObj.y + 'px';
+
+            if (!isCorrect && bombObj.y > containerHeight * 0.85) {
+                if (!bomb.classList.contains('pop-out')) {
+                    bomb.classList.add('pop-out');
+                    setTimeout(() => {
+                        clearInterval(moveInterval);
+                        bomb.remove();
+                        activeBombs = activeBombs.filter(b => b !== bombObj);
+                    }, 400);
+                }
+            }
+
+            if (isCorrect && bombObj.y > containerHeight - 110) { 
+                clearInterval(moveInterval);
+                activeBombs = activeBombs.filter(b => b !== bombObj);
+                triggerBigExplosion(startX + 50, containerHeight - 60, "정답 폭탄을 놓쳤어요!");
+            }
+        }, 16);
+
+        const handleHit = (e) => {
+            e.preventDefault();
+            if (isGameOver || score >= goal) return;
+            if (isCorrect) {
+                if (!bomb.classList.contains('pop-out')) {
+                    bomb.classList.add('pop-out');
+                    score++;
+                    updateStatus();
+                    showCheer(); 
+                    setTimeout(() => {
+                        bomb.remove();
+                        clearInterval(moveInterval);
+                        activeBombs = activeBombs.filter(b => b !== bombObj);
+                        if (score >= goal) showWinPopup();
+                    }, 400);
+                }
+            } else {
+                triggerBigExplosion(startX + 50, bombObj.y + 50, "오답을 눌렀어요!");
+            }
+        };
+        bomb.addEventListener('touchstart', handleHit);
+        bomb.addEventListener('mousedown', handleHit);
+    }
+
+    function triggerBigExplosion(x, y, reason) {
+        isGameOver = true;
+        document.getElementById('game-container').classList.add('shake-active');
+        const fire = document.createElement('div');
+        fire.className = 'fire-explosion';
+        fire.style.left = x + 'px'; fire.style.top = y + 'px';
+        document.getElementById('game-area').appendChild(fire);
         setTimeout(() => {
-            container.classList.remove('heavy-shake-screen');
-            gameWorld.style.display = 'none';
-            document.getElementById('ui-layer').style.display = 'none';
-            const title = document.getElementById('main-title');
-            const status = document.getElementById('status-msg');
-            const btn = document.getElementById('start-btn');
-            title.innerText = isWin ? "임무 완수!" : "임무 실패!";
-            title.className = "result-title";
-            title.style.color = isWin ? "#00f2ff" : "#ff00de";
-            status.innerHTML = `<div class="result-score-box"><span class="result-score-label">최종 스코어</span><span class="result-score-value">우주선 ${score}대 격파</span></div><div style="font-size:0.9rem; color:#aaa; font-weight:bold; padding: 0 10px;">다시 도전하여 지구의 평화를 지켜주세요!</div>`;
-            btn.innerText = "다시 시작하기";
-            btn.onclick = () => location.reload();
-            introScreen.style.display = 'flex';
-        }, 800);
+            document.getElementById('game-container').classList.remove('shake-active');
+            showLosePopup(reason);
+        }, 1200);
+    }
+
+    function makeQuizData(type) {
+        let a, b;
+        if (type === "plus" || (type === "mix" && Math.random() > 0.5)) {
+            do { a = Math.floor(Math.random() * 50) + 10; b = Math.floor(Math.random() * 39) + 10; } while (a + b >= 100);
+            return { q: `${a}+${b}`, ans: a + b };
+        } else {
+            a = Math.floor(Math.random() * 80) + 20; b = Math.floor(Math.random() * (a - 10)) + 10;
+            return { q: `${a}-${b}`, ans: a - b };
+        }
+    }
+
+    function showWinPopup() {
+        isGameOver = true; 
+        const screen = document.getElementById('stats-screen');
+        const restartBtn = document.getElementById('restart-btn');
+        
+        document.getElementById('stats-title').innerText = "임무 완수! 🎉";
+        document.getElementById('stats-content').innerHTML = `우리 마을을 성공적으로 지켜냈어요!`;
+        document.getElementById('wish-ticket').style.display = 'block';
+        
+        restartBtn.innerText = "다음 단계 도전";
+        restartBtn.style.background = "#FF9800";
+        
+        screen.style.display = 'flex';
+        activeBombs.forEach(b => b.element.remove());
+        activeBombs = [];
+    }
+
+    function showLosePopup(reason) {
+        const screen = document.getElementById('stats-screen');
+        const restartBtn = document.getElementById('restart-btn');
+        
+        document.getElementById('stats-title').innerText = "작전 실패... 😭";
+        document.getElementById('stats-content').innerText = reason + "\n마을이 파괴되었습니다.";
+        document.getElementById('wish-ticket').style.display = 'none';
+        
+        restartBtn.innerText = "다시 도전";
+        restartBtn.style.background = "#ffa726";
+        
+        screen.style.display = 'flex';
+    }
+
+    function handleRestart() {
+        const btnText = document.getElementById('restart-btn').innerText;
+        if(btnText === "다음 단계 도전") {
+            currentLevel++; 
+            startGame();
+        } else {
+            location.reload(); 
+        }
     }
 </script>
+
 </body>
 </html>
