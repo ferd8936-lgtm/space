@@ -68,9 +68,10 @@
         }
         @keyframes bounce-char { from { transform: translateY(0); } to { transform: translateY(-15px); } }
 
+        /* [수정] 우주선을 현재(0px)보다 20% 더 내리기 위해 음수 마진/위치 조정 (-30px 정도) */
         #player {
             position: absolute; 
-            bottom: 0px; /* 화면 맨 아래에 밀착 */
+            bottom: -30px; 
             left: 50%; 
             width: 128.3px; height: 163.8px; 
             transform: translateX(-50%); z-index: 100; 
@@ -78,18 +79,17 @@
             background-size: contain;
             transition: left 0.15s ease-out;
             cursor: pointer;
-            pointer-events: auto; /* 우주선 이미지만 터치를 받도록 설정 */
+            pointer-events: auto; 
         }
 
         @media screen and (max-width: 500px) {
             #player {
                 width: 166.5px; 
                 height: 212.9px; 
-                bottom: 0px; 
+                bottom: -40px; /* 모바일 크기에 맞춰 20% 더 하향 조정 */
             }
         }
 
-        /* [수정] 보이지 않는 확장 영역을 아예 제거하여 실제 이미지 크기로만 제한 */
         #player::after {
             display: none;
         }
@@ -275,9 +275,15 @@
         if (!gameActive || isGameOver) return;
         const pRect = player.getBoundingClientRect();
         
-        /* [수정] 터치 판정을 더욱 정밀하게: 
-           우주선 이미지 영역(pRect) 내부를 정확히 터치했을 때만 발사 */
-        const isOnPlayer = (clientX >= pRect.left && clientX <= pRect.right && clientY >= pRect.top && clientY <= pRect.bottom);
+        /* [수정] 터치 발사 영역을 이미지 중심에서 20% 안쪽으로 축소 (이미지 본체를 더 정확히 눌러야 함) */
+        const shrinkX = pRect.width * 0.1;
+        const shrinkY = pRect.height * 0.1;
+        const isOnPlayer = (
+            clientX >= pRect.left + shrinkX && 
+            clientX <= pRect.right - shrinkX && 
+            clientY >= pRect.top + shrinkY && 
+            clientY <= pRect.bottom - shrinkY
+        );
         
         if (target === player || isOnPlayer) {
             shootLaser();
@@ -317,9 +323,10 @@
             const b = document.createElement('div');
             b.className = 'bullet';
             b.style.left = `calc(${lanes[curLane]}% + ${off}px)`;
-            b.style.bottom = '60px';
+            // [수정] 우주선이 내려갔으므로 총알 시작 위치 상향 조정 (바닥에서 발사되는 느낌 방지)
+            b.style.bottom = '40px';
             container.appendChild(b);
-            const anim = b.animate([{ bottom: '60px' }, { bottom: '100%' }], { duration: 350 });
+            const anim = b.animate([{ bottom: '40px' }, { bottom: '100%' }], { duration: 350 });
             const bulletCheck = setInterval(() => {
                 if (!targetObs) return;
                 const bRect = b.getBoundingClientRect();
