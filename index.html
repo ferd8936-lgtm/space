@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>지구 수호 레이스: 가디언즈</title>
+    <style>
+        @font-face {
+            font-family: 'NexonGothic';
+            src: url('./NexonLv2Gothic_2.ttf') format('truetype');
+        }
+        * { font-family: 'NexonGothic', sans-serif !important; box-sizing: border-box; }
+        body { margin: 0; overflow: hidden; background: #000; user-select: none; touch-action: none; }
+
+        #game-container { 
+            position: relative; width: 100vw; height: 100vh; max-width: 500px; margin: 0 auto;
+            background: radial-gradient(circle at center, #05051a 0%, #000 100%);
+            overflow: hidden; 
+        }
+
+        .stars {
+            position: absolute; width: 200%; height: 200%; top: -50%; left: -50%;
+            background-image: 
+                radial-gradient(2.5px 2.5px at 20px 30px, #fff, rgba(0,0,0,0)), 
+                radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)), 
+                radial-gradient(1.5px 1.5px at 100px 150px, #00f2ff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 150px 200px, rgba(255,255,255,0.9), rgba(0,0,0,0));
+            background-size: 250px 250px;
+            animation: space-scroll 15s linear infinite;
+            opacity: 0.8; z-index: 1; pointer-events: none;
+        }
+        @keyframes space-scroll { from { transform: translateY(0); } to { transform: translateY(250px); } }
+
+        .overlay { 
+            position: absolute; width: 100%; height: 100%; z-index: 5000; 
+            background: rgba(0, 0, 0, 0.9); display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; color: white; padding: 20px; text-align: center;
+        }
+
+        .intro-char {
+            width: 100px; height: 100px;
+            background: url('abc.png') no-repeat center center;
+            background-size: contain;
+            animation: bounce-char 0.8s infinite alternate ease-in-out;
+            margin-bottom: 15px;
+            display: block; margin-left: auto; margin-right: auto;
+        }
+        @keyframes bounce-char { from { transform: translateY(0); } to { transform: translateY(-15px); } }
+
+        #player {
+            position: absolute; bottom: 120px; left: 50%; width: 47px; height: 60px;
+            transform: translateX(-50%); z-index: 100; 
+            background: #fff; clip-path: polygon(50% 0%, 100% 100%, 50% 85%, 0% 100%);
+            box-shadow: 0 0 25px #00f2ff; transition: left 0.15s ease-out;
+            cursor: pointer;
+        }
+
+        #player::after {
+            content: ''; position: absolute; top: -30px; left: -30px; right: -30px; bottom: -30px;
+        }
+
+        .bullet { position: absolute; width: 4px; height: 18px; background: #00f2ff; z-index: 80; box-shadow: 0 0 10px #00f2ff; pointer-events: none; }
+        
+        .obstacle {
+            position: absolute; width: 130px; height: 85px;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; z-index: 10; font-size: 24px; font-weight: bold; pointer-events: none;
+        }
+        .ufo-body {
+            position: absolute; width: 100%; height: 42px; top: 28px;
+            background: #222; border: 2.5px solid #00f2ff; border-radius: 60px;
+            box-shadow: 0 5px 20px rgba(0, 242, 255, 0.4);
+        }
+        .ufo-dome {
+            position: absolute; width: 55%; height: 38px; top: 0px; left: 22.5%;
+            background: rgba(0, 242, 255, 0.15); border: 2.5px solid #00f2ff;
+            border-bottom: none; border-radius: 60px 60px 0 0;
+        }
+
+        @keyframes explode-anim {
+            0% { transform: scale(1); opacity: 1; filter: brightness(2); }
+            100% { transform: scale(5); opacity: 0; filter: brightness(10); }
+        }
+
+        @keyframes big-explode-anim {
+            0% { transform: scale(1); filter: brightness(2); }
+            30% { transform: scale(8); filter: hue-rotate(90deg) brightness(5); opacity: 1; }
+            100% { transform: scale(15); opacity: 0; }
+        }
+
+        @keyframes heavy-shake {
+            0% { transform: translate(0, 0); }
+            10% { transform: translate(-10px, -10px); }
+            30% { transform: translate(10px, 10px); }
+            50% { transform: translate(-15px, 5px); }
+            70% { transform: translate(15px, -5px); }
+            100% { transform: translate(0, 0); }
+        }
+        .heavy-shake-screen { animation: heavy-shake 0.8s ease-in-out; }
+
+        .btn { 
+            padding: 12px 40px; background: #00f2ff; border: none; color: #000; 
+            cursor: pointer; margin-top: 15px; font-weight: bold; font-size: 1rem; 
+            border-radius: 50px; touch-action: manipulation;
+        }
+        
+        #ui-layer { position: absolute; top: 40px; width: 100%; text-align: center; color: #00f2ff; z-index: 1000; font-weight: bold; font-size: 19px; text-shadow: 0 0 10px #000; pointer-events: none; }
+
+        .result-title { font-size: 2rem; font-weight: 900; margin-bottom: 5px; }
+        .result-score-box { background: rgba(255, 255, 255, 0.1); padding: 15px 30px; border-radius: 20px; margin: 10px 0; border: 1px solid rgba(0, 242, 255, 0.3); }
+        .result-score-label { font-size: 0.9rem; color: #00f2ff; display: block; margin-bottom: 3px; }
+        .result-score-value { font-size: 1.1rem; font-weight: bold; color: #fff; letter-spacing: 0.5px; } 
+
+        .warning-box {
+            background: rgba(255, 0, 222, 0.1);
+            border: 1px solid #ff00de;
+            padding: 15px 25px;
+            border-radius: 12px;
+            margin-top: 15px;
+            line-height: 1.7;
+            font-size: 1.05rem;
+            color: #fff;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div class="stars"></div>
+    <div id="ui-layer" style="display:none;">
+        우주선 격파: <span id="score-text">0</span> / 40
+    </div>
+
+    <div id="intro-screen" class="overlay">
+        <div class="intro-char"></div>
+        <h1 id="main-title" style="color:#00f2ff; margin-top:0; font-size: 1.8rem; font-weight: 900; margin-bottom: 5px;">아이니의<br>지구 수호 레이스</h1>
+        <div id="status-msg">
+            정답 UFO를 <span style="color:#00f2ff; font-weight:bold;">40대</span> 명중시켜 지구를 지키세요!
+            <div class="warning-box">
+                정답 UFO는 2번 맞히면 사라지고<br>
+                오답 UFO를 맞히면 우주 대폭발 발생!
+            </div>
+        </div>
+        <button id="start-btn" class="btn" onclick="startGame()" ontouchstart="event.preventDefault(); startGame();">작전 시작</button>
+    </div>
+
+    <div id="game-world" style="display:none; height: 100%; width: 100%; position:relative;">
+        <div id="player"></div>
+    </div>
+</div>
+
+<script>
+    let audioCtx;
+    let bgmInterval = null;
+
+    function playShootSound() {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    function playExplodeSound() {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.5);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+    }
+
+    function playBGM() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        if (bgmInterval) return;
+
+        function createNote(freq, startTime, duration, type = 'triangle', vol = 0.05, detune = 0) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, startTime);
+            osc.detune.setValueAtTime(detune, startTime);
+            filter.type = "lowpass";
+            filter.frequency.setValueAtTime(1000, startTime);
+            filter.frequency.exponentialRampToValueAtTime(400, startTime + duration);
+            
+            // 볼륨 배율 상향 조정 (vol * 1.5)
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(vol * 1.5, startTime + 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+            
+            osc.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(startTime); osc.stop(startTime + duration);
+        }
+
+        bgmInterval = setInterval(() => {
+            if (!gameActive || isGameOver) { clearInterval(bgmInterval); bgmInterval = null; return; }
+            const now = audioCtx.currentTime;
+            // 각 파트별 볼륨값 상향
+            createNote(55, now, 3.2, 'sine', 0.25); // 베이스 볼륨업
+            createNote(55.5, now, 3.2, 'sine', 0.2, 10); 
+            createNote(220, now, 2.0, 'triangle', 0.08); // 패드 볼륨업
+            createNote(329.63, now + 0.8, 2.0, 'triangle', 0.06); 
+            if (Math.random() > 0.5) createNote(880, now + 1.2, 1.5, 'sine', 0.03);
+        }, 3200);
+    }
+
+    let score = 0, curLane = 1;
+    let isGameOver = false, gameActive = false, collisionCheckLoop;
+    let quizAnims = [];
+
+    const player = document.getElementById('player');
+    const container = document.getElementById('game-container');
+    const gameWorld = document.getElementById('game-world');
+    const introScreen = document.getElementById('intro-screen');
+
+    const handleInteraction = (clientX, clientY, target) => {
+        if (!gameActive || isGameOver) return;
+        const pRect = player.getBoundingClientRect();
+        const isNearPlayer = (clientX >= pRect.left - 40 && clientX <= pRect.right + 40 && clientY >= pRect.top - 40 && clientY <= pRect.bottom + 40);
+        if (target === player || isNearPlayer) {
+            shootLaser();
+        } else {
+            const rect = container.getBoundingClientRect();
+            const posX = clientX - rect.left;
+            const width = container.clientWidth;
+            if (posX < width / 3) curLane = 0;
+            else if (posX < (width / 3) * 2) curLane = 1;
+            else curLane = 2;
+            player.style.left = [16.6, 50, 83.3][curLane] + '%';
+        }
+    };
+
+    container.addEventListener('mousedown', (e) => handleInteraction(e.clientX, e.clientY, e.target));
+    container.addEventListener('touchstart', (e) => {
+        if(gameActive) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            handleInteraction(touch.clientX, touch.clientY, e.target);
+        }
+    }, {passive: false});
+
+    function shootLaser() {
+        if (isGameOver) return;
+        playShootSound();
+        const lanes = [16.6, 50, 83.3];
+        const obsList = document.querySelectorAll('.obstacle');
+        let targetObs = null;
+        obsList.forEach(obs => {
+            if (parseInt(obs.dataset.lane) === curLane && obs.dataset.isExploding !== "true") {
+                targetObs = obs;
+            }
+        });
+
+        [-12, 12].forEach(off => {
+            const b = document.createElement('div');
+            b.className = 'bullet';
+            b.style.left = `calc(${lanes[curLane]}% + ${off}px)`;
+            b.style.bottom = '180px';
+            container.appendChild(b);
+            const anim = b.animate([{ bottom: '180px' }, { bottom: '100%' }], { duration: 350 });
+            const bulletCheck = setInterval(() => {
+                if (!targetObs) return;
+                const bRect = b.getBoundingClientRect();
+                const oRect = targetObs.getBoundingClientRect();
+                if (bRect.top <= oRect.bottom) {
+                    clearInterval(bulletCheck);
+                    anim.pause();
+                    b.remove();
+                    triggerHitEffect(targetObs);
+                }
+            }, 10);
+            anim.onfinish = () => { clearInterval(bulletCheck); b.remove(); };
+        });
+    }
+
+    function triggerHitEffect(obs) {
+        if (isGameOver || obs.dataset.isExploding === "true") return;
+        obs.dataset.hp = parseInt(obs.dataset.hp) - 1;
+        obs.style.filter = "brightness(3)";
+        setTimeout(() => { if(obs) obs.style.filter = "brightness(1)"; }, 50);
+        if (parseInt(obs.dataset.hp) <= 0) {
+            obs.dataset.isExploding = "true";
+            if (obs.dataset.correct === "true") {
+                score++;
+                document.getElementById('score-text').innerText = score;
+                obs.style.animation = "explode-anim 0.5s forwards";
+                setTimeout(() => {
+                    obs.remove();
+                    if (score >= 40) return endGame(true); 
+                    spawnQuiz();
+                }, 500);
+            } else {
+                playExplodeSound();
+                obs.style.animation = "big-explode-anim 0.8s forwards";
+                container.classList.add('heavy-shake-screen');
+                setTimeout(() => endGame(false, true), 600); 
+            }
+        }
+    }
+
+    function startGame() {
+        if(gameActive) return;
+        isGameOver = false; gameActive = true; score = 0;
+        playBGM();
+        document.getElementById('score-text').innerText = score;
+        introScreen.style.display = 'none';
+        gameWorld.style.display = 'block';
+        document.getElementById('ui-layer').style.display = 'block';
+        player.style.animation = ""; player.style.opacity = "1";
+        spawnQuiz();
+        startCollisionCheck();
+    }
+
+    function spawnQuiz() {
+        if (isGameOver) return;
+        document.querySelectorAll('.obstacle').forEach(o => o.remove());
+        quizAnims = [];
+        let diff = Math.min(score, 40);
+        let range = 10 + Math.floor(diff / 2); 
+        let speed = Math.max(15000 - (diff * 230), 4500); 
+        const correctLane = Math.floor(Math.random() * 3);
+        for (let i = 0; i < 3; i++) {
+            let a = Math.floor(Math.random() * range) + 5;
+            let b = Math.floor(Math.random() * range) + 5;
+            let ans = a + b;
+            const obs = document.createElement('div');
+            obs.className = 'obstacle';
+            obs.innerHTML = `<div class="ufo-dome"></div><div class="ufo-body"></div><span style="position:relative; z-index:2; margin-top:22px; color: #fff; text-shadow: 0 0 10px #000;">${i === correctLane ? `${a}+${b}=${ans}` : `${a}+${b}=${ans + (Math.random() > 0.5 ? 2 : -2)}`}</span>`;
+            obs.dataset.lane = i;
+            obs.dataset.correct = (i === correctLane);
+            obs.dataset.hp = 3; 
+            obs.dataset.isExploding = "false";
+            obs.style.left = `calc(${[16.6, 50, 83.3][i]}% - 65px)`; 
+            gameWorld.appendChild(obs);
+            const anim = obs.animate([{ top: '-120px' }, { top: '100%' }], { duration: speed, fill: 'forwards', easing: 'linear' });
+            quizAnims.push(anim);
+            anim.onfinish = () => { if(gameActive && !isGameOver && obs.parentElement) spawnQuiz(); };
+        }
+    }
+
+    function startCollisionCheck() {
+        if(collisionCheckLoop) clearInterval(collisionCheckLoop);
+        collisionCheckLoop = setInterval(() => {
+            if (!gameActive || isGameOver) return;
+            const obstacles = document.querySelectorAll('.obstacle');
+            const pRect = player.getBoundingClientRect();
+            obstacles.forEach(obs => {
+                if (obs.dataset.isExploding === "true") return;
+                const oRect = obs.getBoundingClientRect();
+                const isHit = (pRect.left + 8 < oRect.right && pRect.right - 8 > oRect.left && pRect.top + 8 < oRect.bottom && pRect.bottom - 8 > oRect.top);
+                if (isHit) {
+                    playExplodeSound();
+                    endGame(false);
+                } 
+            });
+        }, 20);
+    }
+
+    function endGame(isWin, isWrongHit = false) {
+        if (isGameOver) return;
+        isGameOver = true; gameActive = false;
+        clearInterval(collisionCheckLoop);
+        quizAnims.forEach(a => { if(a) a.pause(); });
+        if (!isWin && !isWrongHit) {
+            container.classList.add('heavy-shake-screen');
+            player.style.animation = "explode-anim 0.6s forwards";
+        }
+        setTimeout(() => {
+            container.classList.remove('heavy-shake-screen');
+            gameWorld.style.display = 'none';
+            document.getElementById('ui-layer').style.display = 'none';
+            const title = document.getElementById('main-title');
+            const status = document.getElementById('status-msg');
+            const btn = document.getElementById('start-btn');
+            title.innerText = isWin ? "임무 완수!" : "임무 실패!";
+            title.className = "result-title";
+            title.style.color = isWin ? "#00f2ff" : "#ff00de";
+            status.innerHTML = `<div class="result-score-box"><span class="result-score-label">최종 스코어</span><span class="result-score-value">우주선 ${score}대 격파</span></div><div style="font-size:0.9rem; color:#aaa; font-weight:bold; padding: 0 10px;">다시 도전하여 지구의 평화를 지켜주세요!</div>`;
+            btn.innerText = "다시 시작하기";
+            btn.onclick = () => location.reload();
+            btn.ontouchstart = (e) => { e.preventDefault(); location.reload(); };
+            introScreen.style.display = 'flex';
+        }, 800);
+    }
+</script>
+</body>
+</html>
