@@ -12,6 +12,14 @@
         * { font-family: 'NexonGothic', sans-serif !important; box-sizing: border-box; }
         body { margin: 0; overflow: hidden; background: #000; user-select: none; touch-action: none; }
 
+        /* 크롬 접속 유도 바 스타일 */
+        #chrome-notice {
+            position: fixed; top: 0; left: 0; width: 100%; height: 45px;
+            background: #4285F4; color: white; display: none; align-items: center;
+            justify-content: center; font-size: 14px; z-index: 9999; cursor: pointer;
+            font-weight: bold; border-bottom: 2px solid #fff;
+        }
+
         #game-container { 
             position: relative; width: 100vw; height: 100vh; max-width: 500px; margin: 0 auto;
             background: radial-gradient(circle at center, #05051a 0%, #000 100%);
@@ -138,6 +146,8 @@
 </head>
 <body>
 
+<div id="chrome-notice" onclick="goToChrome()">이 게임은 Chrome 브라우저에 최적화되었습니다. [클릭하여 이동]</div>
+
 <div id="game-container">
     <div class="stars"></div>
     <div id="ui-layer" style="display:none;">
@@ -163,6 +173,19 @@
 </div>
 
 <script>
+    // 브라우저 체크 및 크롬 유도 로직
+    window.addEventListener('DOMContentLoaded', () => {
+        const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+        if (!isChrome) {
+            document.getElementById('chrome-notice').style.display = 'flex';
+        }
+    });
+
+    function goToChrome() {
+        const currentUrl = window.location.href.replace(/^https?:\/\//, '');
+        window.location.href = "googlechrome://" + currentUrl;
+    }
+
     let audioCtx;
     let bgmInterval = null;
 
@@ -349,7 +372,7 @@
             obs.innerHTML = `<div class="ufo-dome"></div><div class="ufo-body"></div><span style="position:relative; z-index:2; margin-top:22px; color: #fff; text-shadow: 0 0 10px #000;">${i === correctLane ? `${a}+${b}=${ans}` : `${a}+${b}=${ans + (Math.random() > 0.5 ? 2 : -2)}`}</span>`;
             obs.dataset.lane = i;
             obs.dataset.correct = (i === correctLane);
-            obs.dataset.hp = 6; // 1회 발사 시 총알 2발이 나가므로, 3회 발사 적중을 위해 6으로 상향
+            obs.dataset.hp = 6; 
             obs.dataset.isExploding = "false";
             obs.style.left = `calc(${[16.6, 50, 83.3][i]}% - 65px)`; 
             gameWorld.appendChild(obs);
