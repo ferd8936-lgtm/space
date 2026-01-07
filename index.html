@@ -47,11 +47,12 @@
         }
         @keyframes bounce-char { from { transform: translateY(0); } to { transform: translateY(-15px); } }
 
+        /* 내 전투기 설정 - 기존 대비 30% 추가 확대 */
         #player {
             position: absolute; 
             bottom: 10px; 
             left: 50%; 
-            width: 98.7px; height: 126px; 
+            width: 128.3px; height: 163.8px; /* PC 기존(98.7x126)에서 30% 확대 */
             transform: translateX(-50%); z-index: 100; 
             background: url('spaceship.png') no-repeat center center;
             background-size: contain;
@@ -61,13 +62,12 @@
 
         @media screen and (max-width: 500px) {
             #player {
-                width: 128.1px; 
-                height: 163.8px; 
+                width: 166.5px; /* 모바일 기존(128.1px)에서 30% 확대 */
+                height: 212.9px; /* 모바일 기존(163.8px)에서 30% 확대 */
                 bottom: 10px; 
             }
         }
 
-        /* 터치 범위 조정을 위해 투명 확장 레이어 제거 또는 축소 */
         #player::after {
             content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
         }
@@ -238,10 +238,7 @@
     const handleInteraction = (clientX, clientY, target) => {
         if (!gameActive || isGameOver) return;
         const pRect = player.getBoundingClientRect();
-        
-        // 발사 조건 세밀화: 우주선 이미지 영역 내부에 정확히 들어왔을 때만 발사
         const isOnPlayer = (clientX >= pRect.left && clientX <= pRect.right && clientY >= pRect.top && clientY <= pRect.bottom);
-        
         if (target === player || isOnPlayer) {
             shootLaser();
         } else {
@@ -373,12 +370,13 @@
                 if (obs.dataset.isExploding === "true") return;
                 const oRect = obs.getBoundingClientRect();
                 
-                // 충돌 판정 세밀화: 기존 8px 여유 공간을 2px로 축소하여 거의 닿았을 때만 폭발
+                /* 충돌 판정 정밀 수정: 
+                   pRect의 상하좌우 경계를 oRect와 거의 일치할 때(오차 1px)만 충돌로 인식 */
                 const isHit = (
-                    pRect.left + 2 < oRect.right && 
-                    pRect.right - 2 > oRect.left && 
-                    pRect.top + 2 < oRect.bottom && 
-                    pRect.bottom - 2 > oRect.top
+                    pRect.left + 1 < oRect.right && 
+                    pRect.right - 1 > oRect.left && 
+                    pRect.top + 1 < oRect.bottom && 
+                    pRect.bottom - 1 > oRect.top
                 );
                 
                 if (isHit) {
