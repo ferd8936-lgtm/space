@@ -68,10 +68,10 @@
         }
         @keyframes bounce-char { from { transform: translateY(0); } to { transform: translateY(-15px); } }
 
-        /* [핵심 수정] 음수 값을 사용하여 브라우저 하단 영역 안으로 강제로 밀어 넣음 */
+        /* 내 전투기 설정 */
         #player {
             position: absolute; 
-            bottom: -20px; /* 강제로 더 아래로 내림 */
+            bottom: 0.5svh; 
             left: 50%; 
             width: 128.3px; height: 163.8px; 
             transform: translateX(-50%); z-index: 100; 
@@ -85,12 +85,14 @@
             #player {
                 width: 166.5px; 
                 height: 212.9px; 
-                bottom: -25px; /* 모바일에서 더 강력하게 내림 */
+                bottom: 0.5svh; 
             }
         }
 
+        /* [수정] 보이지 않는 터치 영역을 본체보다 30% 더 안쪽으로 축소하여 바닥 밀착 방해 요소 제거 */
         #player::after {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            content: ''; position: absolute; 
+            top: 30%; left: 30%; right: 30%; bottom: 30%;
         }
 
         .bullet { position: absolute; width: 4px; height: 18px; background: #00f2ff; z-index: 80; box-shadow: 0 0 10px #00f2ff; pointer-events: none; }
@@ -312,10 +314,9 @@
             const b = document.createElement('div');
             b.className = 'bullet';
             b.style.left = `calc(${lanes[curLane]}% + ${off}px)`;
-            // [정밀 조정] 우주선이 아래로 내려갔으므로 총알도 더 낮은 곳에서 시작
-            b.style.bottom = '30px';
+            b.style.bottom = '90px';
             container.appendChild(b);
-            const anim = b.animate([{ bottom: '30px' }, { bottom: '100%' }], { duration: 350 });
+            const anim = b.animate([{ bottom: '90px' }, { bottom: '100%' }], { duration: 350 });
             const bulletCheck = setInterval(() => {
                 if (!targetObs) return;
                 const bRect = b.getBoundingClientRect();
