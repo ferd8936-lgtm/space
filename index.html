@@ -68,10 +68,9 @@
         }
         @keyframes bounce-char { from { transform: translateY(0); } to { transform: translateY(-15px); } }
 
-        /* 내 전투기 설정 */
         #player {
             position: absolute; 
-            bottom: 0.5svh; 
+            bottom: 0px; /* 화면 맨 아래에 밀착 */
             left: 50%; 
             width: 128.3px; height: 163.8px; 
             transform: translateX(-50%); z-index: 100; 
@@ -79,20 +78,20 @@
             background-size: contain;
             transition: left 0.15s ease-out;
             cursor: pointer;
+            pointer-events: auto; /* 우주선 이미지만 터치를 받도록 설정 */
         }
 
         @media screen and (max-width: 500px) {
             #player {
                 width: 166.5px; 
                 height: 212.9px; 
-                bottom: 0.5svh; 
+                bottom: 0px; 
             }
         }
 
-        /* [수정] 보이지 않는 터치 영역을 본체보다 30% 더 안쪽으로 축소하여 바닥 밀착 방해 요소 제거 */
+        /* [수정] 보이지 않는 확장 영역을 아예 제거하여 실제 이미지 크기로만 제한 */
         #player::after {
-            content: ''; position: absolute; 
-            top: 30%; left: 30%; right: 30%; bottom: 30%;
+            display: none;
         }
 
         .bullet { position: absolute; width: 4px; height: 18px; background: #00f2ff; z-index: 80; box-shadow: 0 0 10px #00f2ff; pointer-events: none; }
@@ -275,7 +274,11 @@
     const handleInteraction = (clientX, clientY, target) => {
         if (!gameActive || isGameOver) return;
         const pRect = player.getBoundingClientRect();
+        
+        /* [수정] 터치 판정을 더욱 정밀하게: 
+           우주선 이미지 영역(pRect) 내부를 정확히 터치했을 때만 발사 */
         const isOnPlayer = (clientX >= pRect.left && clientX <= pRect.right && clientY >= pRect.top && clientY <= pRect.bottom);
+        
         if (target === player || isOnPlayer) {
             shootLaser();
         } else {
@@ -314,9 +317,9 @@
             const b = document.createElement('div');
             b.className = 'bullet';
             b.style.left = `calc(${lanes[curLane]}% + ${off}px)`;
-            b.style.bottom = '90px';
+            b.style.bottom = '60px';
             container.appendChild(b);
-            const anim = b.animate([{ bottom: '90px' }, { bottom: '100%' }], { duration: 350 });
+            const anim = b.animate([{ bottom: '60px' }, { bottom: '100%' }], { duration: 350 });
             const bulletCheck = setInterval(() => {
                 if (!targetObs) return;
                 const bRect = b.getBoundingClientRect();
