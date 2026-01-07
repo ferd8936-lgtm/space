@@ -11,15 +11,14 @@
         }
         * { font-family: 'NexonGothic', sans-serif !important; box-sizing: border-box; }
         
-        /* [수정] 삼성 브라우저 하단 바를 고려한 동적 높이 설정 */
         body { 
             margin: 0; 
             overflow: hidden; 
             background: #000; 
             user-select: none; 
             touch-action: none; 
-            height: 100vh; /* 기본값 */
-            height: 100svh; /* 툴바를 제외한 실제 가용 높이 */
+            height: 100vh; 
+            height: 100svh; 
         }
 
         #chrome-notice {
@@ -33,7 +32,7 @@
             position: relative; 
             width: 100vw; 
             height: 100vh; 
-            height: 100svh; /* 가용 화면에 맞춰 컨테이너 높이 자동 조절 */
+            height: 100svh; 
             max-width: 500px; 
             margin: 0 auto;
             background: radial-gradient(circle at center, #05051a 0%, #000 100%);
@@ -69,9 +68,10 @@
         }
         @keyframes bounce-char { from { transform: translateY(0); } to { transform: translateY(-15px); } }
 
+        /* 내 전투기 설정 - 하단 여백을 0.5svh로 줄여 더 아래로 배치 */
         #player {
             position: absolute; 
-            bottom: 2svh; /* 고정 px 대신 화면 비율 단위(svh) 사용 */
+            bottom: 0.5svh; 
             left: 50%; 
             width: 128.3px; height: 163.8px; 
             transform: translateX(-50%); z-index: 100; 
@@ -85,7 +85,7 @@
             #player {
                 width: 166.5px; 
                 height: 212.9px; 
-                bottom: 2svh; 
+                bottom: 0.5svh; 
             }
         }
 
