@@ -68,7 +68,6 @@
         }
         @keyframes bounce-char { from { transform: translateY(0); } to { transform: translateY(-15px); } }
 
-        /* [수정] 우주선을 현재(0px)보다 20% 더 내리기 위해 음수 마진/위치 조정 (-30px 정도) */
         #player {
             position: absolute; 
             bottom: -30px; 
@@ -86,12 +85,8 @@
             #player {
                 width: 166.5px; 
                 height: 212.9px; 
-                bottom: -40px; /* 모바일 크기에 맞춰 20% 더 하향 조정 */
+                bottom: -40px;
             }
-        }
-
-        #player::after {
-            display: none;
         }
 
         .bullet { position: absolute; width: 4px; height: 18px; background: #00f2ff; z-index: 80; box-shadow: 0 0 10px #00f2ff; pointer-events: none; }
@@ -110,6 +105,15 @@
             position: absolute; width: 55%; height: 38px; top: 0px; left: 22.5%;
             background: rgba(0, 242, 255, 0.15); border: 2.5px solid #00f2ff;
             border-bottom: none; border-radius: 60px 60px 0 0;
+        }
+
+        .obstacle span {
+            position: relative; 
+            z-index: 2; 
+            margin-top: 15px; 
+            color: #fff; 
+            text-shadow: 0 0 10px #000;
+            display: inline-block;
         }
 
         @keyframes explode-anim {
@@ -138,6 +142,14 @@
             cursor: pointer; margin-top: 15px; font-weight: bold; font-size: 1rem; 
             border-radius: 50px; touch-action: manipulation;
         }
+
+        .step-container { display: flex; gap: 8px; margin-top: 30px; }
+        .btn-step {
+            background: transparent; border: 1px solid #fff; color: #fff;
+            padding: 8px 14px; border-radius: 10px; cursor: pointer;
+            font-size: 0.9rem; font-weight: bold; transition: 0.2s;
+        }
+        .btn-step:active { background: rgba(255,255,255,0.2); }
         
         #ui-layer { position: absolute; top: 40px; width: 100%; text-align: center; color: #00f2ff; z-index: 1000; font-weight: bold; font-size: 19px; text-shadow: 0 0 10px #000; pointer-events: none; }
 
@@ -166,20 +178,26 @@
 <div id="game-container">
     <div class="stars"></div>
     <div id="ui-layer" style="display:none;">
-        우주선 격파: <span id="score-text">0</span> / 40
+        <span id="current-mode-display"></span>우주선 격파: <span id="score-text">0</span> / <span id="goal-text">30</span>
     </div>
 
     <div id="intro-screen" class="overlay">
         <div class="intro-char"></div>
         <h1 id="main-title" style="color:#00f2ff; margin-top:0; font-size: 1.8rem; font-weight: 900; margin-bottom: 5px;">아이니의<br>지구 수호 레이스</h1>
         <div id="status-msg">
-            정답 UFO를 <span style="color:#00f2ff; font-weight:bold;">40대</span> 명중시켜 지구를 지키세요!
+            정답 UFO를 명중시켜 지구를 지키세요!
             <div class="warning-box">
                 정답 UFO는 3회 공격하면 사라지고<br>
                 오답 UFO를 공격하면 우주 대폭발 발생!
             </div>
         </div>
-        <button id="start-btn" class="btn" onclick="startGame()">작전 시작</button>
+        <button id="start-btn" class="btn" onclick="startGame('all')">작전 시작</button>
+        <div id="step-btn-area" class="step-container">
+            <button class="btn-step" onclick="startGame('step0')">초보</button>
+            <button class="btn-step" onclick="startGame('step1')">1단계</button>
+            <button class="btn-step" onclick="startGame('step2')">2단계</button>
+            <button class="btn-step" onclick="startGame('step3')">3단계</button>
+        </div>
     </div>
 
     <div id="game-world" style="display:none; height: 100%; width: 100%; position:relative;">
@@ -265,6 +283,8 @@
     let score = 0, curLane = 1;
     let isGameOver = false, gameActive = false, collisionCheckLoop;
     let quizAnims = [];
+    let currentMode = 'all';
+    let targetScore = 30;
 
     const player = document.getElementById('player');
     const container = document.getElementById('game-container');
@@ -274,8 +294,6 @@
     const handleInteraction = (clientX, clientY, target) => {
         if (!gameActive || isGameOver) return;
         const pRect = player.getBoundingClientRect();
-        
-        /* [수정] 터치 발사 영역을 이미지 중심에서 20% 안쪽으로 축소 (이미지 본체를 더 정확히 눌러야 함) */
         const shrinkX = pRect.width * 0.1;
         const shrinkY = pRect.height * 0.1;
         const isOnPlayer = (
@@ -323,7 +341,6 @@
             const b = document.createElement('div');
             b.className = 'bullet';
             b.style.left = `calc(${lanes[curLane]}% + ${off}px)`;
-            // [수정] 우주선이 내려갔으므로 총알 시작 위치 상향 조정 (바닥에서 발사되는 느낌 방지)
             b.style.bottom = '40px';
             container.appendChild(b);
             const anim = b.animate([{ bottom: '40px' }, { bottom: '100%' }], { duration: 350 });
@@ -355,7 +372,7 @@
                 obs.style.animation = "explode-anim 0.5s forwards";
                 setTimeout(() => {
                     obs.remove();
-                    if (score >= 40) return endGame(true); 
+                    if (score >= targetScore) return endGame(true); 
                     spawnQuiz();
                 }, 500);
             } else {
@@ -367,8 +384,20 @@
         }
     }
 
-    function startGame() {
+    function startGame(mode) {
         if(gameActive) return;
+        currentMode = mode;
+        targetScore = (mode === 'all') ? 30 : 10;
+        document.getElementById('goal-text').innerText = targetScore;
+        
+        let modeDisplay = "";
+        if (mode === 'step0') modeDisplay = "(초보) ";
+        else if (mode === 'step1') modeDisplay = "(1단계) ";
+        else if (mode === 'step2') modeDisplay = "(2단계) ";
+        else if (mode === 'step3') modeDisplay = "(3단계) ";
+        else modeDisplay = "";
+        document.getElementById('current-mode-display').innerText = modeDisplay;
+
         isGameOver = false; gameActive = true; score = 0;
         playBGM();
         document.getElementById('score-text').innerText = score;
@@ -384,17 +413,32 @@
         if (isGameOver) return;
         document.querySelectorAll('.obstacle').forEach(o => o.remove());
         quizAnims = [];
-        let diff = Math.min(score, 40);
-        let range = 10 + Math.floor(diff / 2); 
-        let speed = Math.max(15000 - (diff * 230), 4500); 
+        
+        let baseSpeed = 10000; 
+        let speed = baseSpeed;
+
+        if (currentMode === 'all') {
+            if (score < 10) speed = baseSpeed;
+            else if (score < 20) speed = baseSpeed / 1.15;
+            else speed = (baseSpeed / 1.15) / 1.15;
+        } else if (currentMode === 'step0') {
+            speed = baseSpeed * 1.15;
+        } else if (currentMode === 'step1') {
+            speed = baseSpeed;
+        } else if (currentMode === 'step2') {
+            speed = baseSpeed / 1.15;
+        } else if (currentMode === 'step3') {
+            speed = (baseSpeed / 1.15) / 1.15;
+        }
+
         const correctLane = Math.floor(Math.random() * 3);
         for (let i = 0; i < 3; i++) {
-            let a = Math.floor(Math.random() * range) + 5;
-            let b = Math.floor(Math.random() * range) + 5;
+            let a = Math.floor(Math.random() * 10) + 5;
+            let b = Math.floor(Math.random() * 10) + 5;
             let ans = a + b;
             const obs = document.createElement('div');
             obs.className = 'obstacle';
-            obs.innerHTML = `<div class="ufo-dome"></div><div class="ufo-body"></div><span style="position:relative; z-index:2; margin-top:22px; color: #fff; text-shadow: 0 0 10px #000;">${i === correctLane ? `${a}+${b}=${ans}` : `${a}+${b}=${ans + (Math.random() > 0.5 ? 2 : -2)}`}</span>`;
+            obs.innerHTML = `<div class="ufo-dome"></div><div class="ufo-body"></div><span>${i === correctLane ? `${a}+${b}=${ans}` : `${a}+${b}=${ans + (Math.random() > 0.5 ? 2 : -2)}`}</span>`;
             obs.dataset.lane = i;
             obs.dataset.correct = (i === correctLane);
             obs.dataset.hp = 6; 
@@ -452,10 +496,20 @@
             const title = document.getElementById('main-title');
             const status = document.getElementById('status-msg');
             const btn = document.getElementById('start-btn');
+            
+            document.getElementById('step-btn-area').style.display = 'none';
+            
             title.innerText = isWin ? "임무 완수!" : "임무 실패!";
             title.className = "result-title";
             title.style.color = isWin ? "#00f2ff" : "#ff00de";
-            status.innerHTML = `<div class="result-score-box"><span class="result-score-label">최종 스코어</span><span class="result-score-value">우주선 ${score}대 격파</span></div><div style="font-size:0.9rem; color:#aaa; font-weight:bold; padding: 0 10px;">다시 도전하여 지구의 평화를 지켜주세요!</div>`;
+
+            let modeName = "";
+            if (currentMode === 'step0') modeName = "(초보) ";
+            else if (currentMode === 'step1') modeName = "(1단계) ";
+            else if (currentMode === 'step2') modeName = "(2단계) ";
+            else if (currentMode === 'step3') modeName = "(3단계) ";
+
+            status.innerHTML = `<div class="result-score-box"><span class="result-score-label">최종 스코어</span><span class="result-score-value">${modeName}우주선 ${score}대 격파</span></div><div style="font-size:0.9rem; color:#aaa; font-weight:bold; padding: 0 10px;">다시 도전하여 지구의 평화를 지켜주세요!</div>`;
             btn.innerText = "다시 시작하기";
             btn.onclick = () => location.reload();
             introScreen.style.display = 'flex';
